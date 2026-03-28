@@ -36,7 +36,7 @@ Built for the **PromptWars Hackathon**, this application leverages the power of 
 3. **Configure Environment Variables:**
    Create a `.env` file and add your Gemini API Key:
    ```env
-   GEMINI_API_KEY=your_api_key_here
+   GEMINI_API_KEY=AIzaSyCMFHTSoHLfDyNRvp6wBjvzuuiXOq4de3U
    ```
 
 4. **Firebase Configuration:**
