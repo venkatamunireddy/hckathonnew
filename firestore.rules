@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: incidents
+    // Document ID: auto-generated
+    // Fields:
+    //   - incident_id: string (required) - UUID
+    //   - domain: string (required) - e.g., medical, disaster
+    //   - urgency_level: integer (required, 1-5)
+    //   - extracted_entities: map (optional) - location, individuals, hazards
+    //   - verified_summary: string (required)
+    //   - structured_actions: list (required) - array of action objects
+    //   - raw_input: string (required)
+    //   - uid: string (required) - user ID
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "venkat16333@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidIncident(data) {
+      return data.incident_id is string &&
+             data.domain is string && data.domain.size() > 0 &&
+             data.urgency_level is int && data.urgency_level >= 1 && data.urgency_level <= 5 &&
+             data.verified_summary is string && data.verified_summary.size() > 0 &&
+             data.raw_input is string && data.raw_input.size() > 0 &&
+             data.uid is string &&
+             data.createdAt is timestamp;
+    }
+
+    match /incidents/{incidentId} {
+      allow read: if isAuthenticated() && (isDocOwner() || isAdmin());
+      allow create: if isAuthenticated() && 
+                      isValidIncident(request.resource.data) && 
+                      request.resource.data.uid == request.auth.uid;
+      allow update: if isAuthenticated() && 
+                      isDocOwner() && 
+                      isValidIncident(request.resource.data) &&
+                      request.resource.data.uid == resource.data.uid &&
+                      request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow write: if isAdmin();
+    }
+  }
+}

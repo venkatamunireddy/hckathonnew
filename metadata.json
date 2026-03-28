@@ -1,0 +1,5 @@
+{
+  "name": "HumanHelpBridge",
+  "description": "A Gemini-powered universal bridge that converts unstructured human inputs into structured, verifiable JSON actions.",
+  "requestFramePermissions": ["microphone"]
+}

@@ -1,0 +1,63 @@
+{
+  "entities": {
+    "Incident": {
+      "title": "Incident",
+      "description": "A structured incident report generated from unstructured input.",
+      "type": "object",
+      "properties": {
+        "incident_id": {
+          "type": "string",
+          "description": "Unique identifier for the incident."
+        },
+        "domain": {
+          "type": "string",
+          "description": "The domain of the incident (e.g., medical, disaster)."
+        },
+        "urgency_level": {
+          "type": "integer",
+          "description": "Urgency level from 1 to 5."
+        },
+        "extracted_entities": {
+          "type": "object",
+          "description": "Entities extracted from the input (location, individuals, hazards)."
+        },
+        "verified_summary": {
+          "type": "string",
+          "description": "A concise, verified summary of the incident."
+        },
+        "structured_actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action_type": { "type": "string" },
+              "target_system": { "type": "string" },
+              "payload_to_send": { "type": "object" }
+            }
+          },
+          "description": "A list of structured actions to be taken."
+        },
+        "raw_input": {
+          "type": "string",
+          "description": "The original unstructured input text."
+        },
+        "uid": {
+          "type": "string",
+          "description": "The ID of the user who created the report."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The time the report was created."
+        }
+      },
+      "required": ["incident_id", "domain", "urgency_level", "verified_summary", "raw_input", "uid", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/incidents/{incidentId}": {
+      "schema": "Incident",
+      "description": "Collection of processed incidents."
+    }
+  }
+}
