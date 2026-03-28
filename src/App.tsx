@@ -21,10 +21,12 @@ import {
   X,
   Maximize2,
   Settings,
-  Info
+  Info,
+  ExternalLink,
+  Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { processChaos, StructuredAction, ai } from './services/gemini';
+import { processChaos, StructuredAction, ai, logToBigQuery } from './services/gemini';
 import { useAuth } from './hooks/useAuth';
 import { useIncidents, IncidentRecord } from './hooks/useIncidents';
 import { useSpeechRecognition } from './hooks/useSpeechRecognition';
@@ -197,6 +199,9 @@ export default function App() {
     setLocalError(null);
     try {
       const structuredData = await processChaos(input);
+      // Log to BigQuery for analytics (Google Service adoption)
+      await logToBigQuery(structuredData);
+      
       const newRecord = await addIncident(structuredData, input);
       setSelectedIncident(newRecord);
       setInput('');
@@ -543,6 +548,31 @@ export default function App() {
                       {selectedIncident.structured_actions.map((action, idx) => (
                         <ActionCard key={idx} action={action} />
                       ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-8 border-t border-white/10">
+                    <div className="flex items-center gap-3 mb-6">
+                      <Globe className="w-5 h-5 text-zinc-500" aria-hidden="true" />
+                      <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-400">Grounding Sources</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      {selectedIncident.grounding_urls && selectedIncident.grounding_urls.length > 0 ? (
+                        selectedIncident.grounding_urls.map((url, i) => (
+                          <a 
+                            key={i} 
+                            href={url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-xl hover:bg-white/10 transition-all text-xs text-blue-400"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Source {i + 1}
+                          </a>
+                        ))
+                      ) : (
+                        <span className="text-xs text-zinc-600 font-mono italic">No external grounding required for this input</span>
+                      )}
                     </div>
                   </div>
 

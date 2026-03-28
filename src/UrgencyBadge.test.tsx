@@ -4,15 +4,11 @@ import React from 'react';
 import { UrgencyBadge } from './App';
 
 describe('UrgencyBadge Component', () => {
-  it('renders correctly with level 1', () => {
-    render(<UrgencyBadge level={1} />);
-    expect(screen.getByText(/Level 1/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Urgency Level 1/i)).toBeInTheDocument();
-  });
-
-  it('renders correctly with level 5', () => {
-    render(<UrgencyBadge level={5} />);
-    expect(screen.getByText(/Level 5/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Urgency Level 5/i)).toBeInTheDocument();
+  [1, 2, 3, 4, 5].forEach(level => {
+    it(`renders correctly with level ${level}`, () => {
+      render(<UrgencyBadge level={level} />);
+      expect(screen.getByText(new RegExp(`Level ${level}`, 'i'))).toBeDefined();
+      expect(screen.getByLabelText(new RegExp(`Urgency Level ${level}`, 'i'))).toBeDefined();
+    });
   });
 });

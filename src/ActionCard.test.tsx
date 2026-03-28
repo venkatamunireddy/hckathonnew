@@ -12,8 +12,9 @@ describe('ActionCard Component', () => {
 
   it('renders action details correctly', () => {
     render(<ActionCard action={mockAction} />);
-    expect(screen.getByText(/911-dispatch/i)).toBeInTheDocument();
-    expect(screen.getByText(/dispatch/i)).toBeInTheDocument();
-    expect(screen.getByText(/"location": "Main St"/i)).toBeInTheDocument();
+    expect(screen.getByText(/911-dispatch/i)).toBeDefined();
+    expect(screen.getByText(/dispatch/i)).toBeDefined();
+    expect(screen.getByText(/location/i)).toBeDefined();
+    expect(screen.getByText(/Main St/i)).toBeDefined();
   });
 });

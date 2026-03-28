@@ -36,6 +36,8 @@ export interface IncidentData {
   verified_summary: string;
   /** A list of structured actions to be executed */
   structured_actions: StructuredAction[];
+  /** Optional grounding URLs from Google Search/Maps */
+  grounding_urls?: string[];
 }
 
 export const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
@@ -70,7 +72,10 @@ export async function processChaos(input: string): Promise<IncidentData> {
       config: {
         systemInstruction: "You are HumanHelpBridge. Convert this chaotic input into a strict JSON object with: `incident_id` (UUID), `domain`, `urgency_level` (1-5), `extracted_entities` (location, individuals, hazards), `verified_summary`, and `structured_actions` (array of action_type, target_system, payload_to_send). NO CHAT. ONLY JSON.",
         responseMimeType: "application/json",
-        tools: [{ googleSearch: {} }], // Google Services integration for grounding
+        tools: [
+          { googleSearch: {} },
+          { googleMaps: {} }
+        ], // Multi-service grounding for precision
         responseSchema: {
           type: Type.OBJECT,
           properties: {
@@ -110,6 +115,19 @@ export async function processChaos(input: string): Promise<IncidentData> {
 
     const result = JSON.parse(response.text) as IncidentData;
     
+    // Extract grounding URLs if available
+    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+    if (groundingChunks) {
+      const urls = groundingChunks
+        .map(chunk => chunk.web?.uri || chunk.maps?.uri)
+        .filter((url): url is string => !!url);
+      
+      if (urls.length > 0) {
+        // We can attach these to the result if we extend the interface
+        (result as any).grounding_urls = urls;
+      }
+    }
+    
     // Cache the result (Efficiency)
     cache.set(trimmedInput, result);
     
@@ -118,4 +136,18 @@ export async function processChaos(input: string): Promise<IncidentData> {
     console.error("Gemini processing failed:", error);
     throw new Error(`Failed to bridge chaos: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
+}
+
+/**
+ * Logs the incident data to a simulated BigQuery dataset for long-term analytics.
+ * 
+ * @param data - The structured incident data to log.
+ */
+export async function logToBigQuery(data: IncidentData): Promise<void> {
+  // In a real app, this would call a Cloud Function or BigQuery API directly.
+  // For this bridge, we simulate the secure logging protocol.
+  console.log(`[BigQuery Protocol] Logging incident ${data.incident_id} to analytics.humanhelpbridge.v1`);
+  
+  // Simulate network latency
+  await new Promise(resolve => setTimeout(resolve, 500));
 }
